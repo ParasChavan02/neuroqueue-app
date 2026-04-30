@@ -34,63 +34,68 @@ NeuroQueue/
 
 - Docker Desktop or Docker Engine with Compose support
 
-### Run with Docker
+### Quick Start
 
+1. Clone the repository:
+```bash
+git clone https://github.com/ParasChavan02/neuroqueue-app.git
+cd neuroqueue-app
+```
+
+2. Run with Docker Compose:
 ```bash
 docker compose up --build -d
 ```
 
-Open:
+3. Open the app:
+   - Frontend: [http://localhost:5173](http://localhost:5173)
+   - Backend API: [http://localhost:5000/api](http://localhost:5000/api)
 
-- Frontend: [http://localhost:5173](http://localhost:5173)
-- Backend health: [http://localhost:5000/health](http://localhost:5000/health)
-
-Stop the stack:
-
+4. Stop the stack:
 ```bash
 docker compose down
 ```
 
-### Local Worker Parity
+### Local Setup Notes
 
-The compose file starts three worker containers by default:
-
-- `worker`
-- `worker-2`
-- `worker-3`
-
-This mirrors the Kubernetes worker replica count more closely for local queue testing.
+- MongoDB and Redis run in Docker containers with no authentication
+- `.env` files contain local development defaults
+- All services auto-connect without additional setup
 
 ## Environment Variables
 
-### Backend
+### Backend ([backend/.env.example](backend/.env.example))
 
-See [backend/.env.example](C:\Users\paras\OneDrive\Desktop\NeuroQueue\backend\.env.example)
+```env
+PORT=5000
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/neuroqueue
+JWT_SECRET=your-secret-key-here
+REDIS_HOST=<upstash-host>.upstash.io
+REDIS_PORT=6379
+REDIS_PASSWORD=<upstash-token>
+```
 
-- `PORT`
-- `NODE_ENV`
-- `MONGO_URI`
-- `REDIS_URL`
-- `JWT_SECRET`
-- `JWT_EXPIRES_IN`
-- `CLIENT_ORIGIN`
-- `QUEUE_NAME`
+### Worker ([worker/.env.example](worker/.env.example))
 
-### Worker
+```env
+MONGO_URI=mongodb+srv://<user>:<pass>@cluster.mongodb.net/neuroqueue
+REDIS_HOST=<upstash-host>.upstash.io
+REDIS_PORT=6379
+REDIS_PASSWORD=<upstash-token>
+```
 
-See [worker/.env.example](C:\Users\paras\OneDrive\Desktop\NeuroQueue\worker\.env.example)
+### Frontend ([frontend/.env.example](frontend/.env.example))
 
-- `MONGO_URI`
-- `REDIS_URL`
-- `QUEUE_NAME`
-- `MAX_RETRIES`
-- `WORKER_POLL_TIMEOUT`
+```env
+VITE_API_URL=http://localhost:5000/api
+```
 
-### Frontend
+### Configuration Details
 
-See [frontend/.env.example](C:\Users\paras\OneDrive\Desktop\NeuroQueue\frontend\.env.example)
-
-- `VITE_API_URL`
+- **Redis TLS Detection:** Automatically enables TLS/SSL if `REDIS_PASSWORD` is set (Upstash production). Local Docker uses plain Redis.
+- **MongoDB:** Supports both local (mongodb://host:port) and Atlas (mongodb+srv://) connection strings.
+- For local development, use the `.env` files with local MongoDB and Redis.
+- For production, update `.env` with Upstash Redis and MongoDB Atlas credentials.
 
 ## API Endpoints
 
@@ -132,7 +137,7 @@ kubectl apply -f infra/k8s/ingress.yaml
 
 1. Create a separate infrastructure repository, for example `neuroqueue-infra`.
 2. Copy the Kubernetes manifests from `infra/k8s/` into that repo.
-3. Update `repoURL` in [infra/argocd/application.yaml](C:\Users\paras\OneDrive\Desktop\NeuroQueue\infra\argocd\application.yaml) to your real infra repository URL.
+3. Update `repoURL` in [infra/argocd/application.yaml](infra/argocd/application.yaml) to your real infra repository URL.
 4. Apply the Argo CD application:
 
 ```bash
