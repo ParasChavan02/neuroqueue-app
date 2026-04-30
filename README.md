@@ -1,3 +1,5 @@
+Live Demo:- https://neuroqueue-app-1.onrender.com
+
 # NeuroQueue
 
 NeuroQueue is a MERN + Python distributed system for authenticated, asynchronous text task processing. Users submit text operations through a React frontend, the Node.js API persists tasks in MongoDB and enqueues jobs in Redis, and Python workers process jobs in the background with retries and detailed logs.
