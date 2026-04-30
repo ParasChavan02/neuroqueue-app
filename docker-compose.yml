@@ -1,0 +1,59 @@
+x-worker-common: &worker-common
+  build:
+    context: ./worker
+  env_file:
+    - ./worker/.env
+  depends_on:
+    - mongodb
+    - redis
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api
+    ports:
+      - "5173:8080"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+      - redis
+
+  worker:
+    <<: *worker-common
+
+  worker-2:
+    <<: *worker-common
+
+  worker-3:
+    <<: *worker-common
+
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mongo-data:
+  redis-data:

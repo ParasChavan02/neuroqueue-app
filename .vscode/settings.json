@@ -1,0 +1,12 @@
+{
+  "python.terminal.useEnvFile": true,
+  "python.terminal.executeInFileDir": true,
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "dbaeumer.vscode-eslint",
+    "editor.formatOnSave": true
+  }
+}
