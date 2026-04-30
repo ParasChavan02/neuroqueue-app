@@ -5,6 +5,7 @@ import time
 from datetime import datetime, timezone
 
 import redis
+from redis.connection import ConnectionPool
 from bson import ObjectId
 from pymongo import MongoClient
 
@@ -21,7 +22,19 @@ logging.basicConfig(
 
 class TaskWorker:
     def __init__(self):
-        self.redis = redis.Redis.from_url(settings.redis_url, decode_responses=True)
+        # Create connection pool with keepalive settings
+        self.pool = ConnectionPool.from_url(
+            settings.redis_url,
+            decode_responses=True,
+            socket_keepalive=True,
+            socket_keepalive_options={
+                1: 1,  # TCP_KEEPIDLE: 1 second
+                2: 1,  # TCP_KEEPINTVL: 1 second
+                3: 3,  # TCP_KEEPCNT: 3 times
+            },
+            max_connections=10,
+        )
+        self.redis = redis.Redis(connection_pool=self.pool)
         self.mongo = MongoClient(settings.mongo_uri)
         self.tasks = self.mongo.neuroqueue["tasks"]
 
@@ -86,18 +99,27 @@ class TaskWorker:
 
     def run(self):
         logging.info("Worker started, listening on %s", settings.queue_name)
+        reconnect_attempts = 0
         while True:
             try:
                 item = self.redis.blpop(settings.queue_name, timeout=settings.poll_timeout)
                 if not item:
+                    reconnect_attempts = 0
                     continue
 
+                reconnect_attempts = 0
                 _, payload = item
                 message = json.loads(payload)
                 task_id = message["taskId"]
                 self.process(task_id)
-            except redis.RedisError:
-                logging.exception("Redis connection error, retrying")
+            except (redis.ConnectionError, redis.TimeoutError, ConnectionResetError) as e:
+                reconnect_attempts += 1
+                logging.warning("Redis connection error (attempt %d): %s", reconnect_attempts, str(e))
+                # Reset connection pool and create new connection
+                self.pool.disconnect()
+                time.sleep(min(2 ** reconnect_attempts, 30))  # Exponential backoff up to 30s
+            except redis.RedisError as e:
+                logging.exception("Redis error: %s", str(e))
                 time.sleep(2)
             except Exception:
                 logging.exception("Unexpected worker error")
