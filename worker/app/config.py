@@ -1,5 +1,7 @@
 import os
 
+from dotenv import load_dotenv
+load_dotenv()
 
 class Settings:
     mongo_uri = os.getenv("MONGO_URI", "mongodb://mongodb:27017/neuroqueue")
@@ -15,7 +17,7 @@ class Settings:
     else:
         redis_url = f"redis://{redis_host}:{redis_port}/0"
     
-    queue_name = os.getenv("QUEUE_NAME", "task_queue")
+    queue_name = os.getenv("QUEUE_NAME", "taskQueue")
     max_retries = int(os.getenv("MAX_RETRIES", "3"))
     poll_timeout = int(os.getenv("WORKER_POLL_TIMEOUT", "5"))
 

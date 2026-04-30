@@ -23,7 +23,7 @@ class TaskWorker:
     def __init__(self):
         self.redis = redis.Redis.from_url(settings.redis_url, decode_responses=True)
         self.mongo = MongoClient(settings.mongo_uri)
-        self.tasks = self.mongo.get_default_database()["tasks"]
+        self.tasks = self.mongo.neuroqueue["tasks"]
 
     def append_log(self, task_id: str, message: str):
         timestamp = datetime.now(timezone.utc).isoformat()
