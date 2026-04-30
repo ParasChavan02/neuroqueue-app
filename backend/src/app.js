@@ -10,15 +10,24 @@ import { errorHandler, notFoundHandler } from './middleware/errorMiddleware.js';
 
 const app = express();
 
-app.use(helmet());
+// 🔥 CORS FIX (CRITICAL)
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN?.split(',') ?? ['http://localhost:5173'],
-    credentials: false
+    origin: [
+      'http://localhost:5173',
+      'https://neuroqueue-app-1.onrender.com'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
   })
 );
+
+// security + parsing
+app.use(helmet());
 app.use(express.json({ limit: '1mb' }));
 app.use(morgan('combined'));
+
+// rate limiting
 app.use(
   rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -28,15 +37,16 @@ app.use(
   })
 );
 
+// health check
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
 });
 
+// routes (cleaned — no duplicates)
 app.use('/auth', authRoutes);
 app.use('/tasks', taskRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/tasks', taskRoutes);
 
+// error handling
 app.use(notFoundHandler);
 app.use(errorHandler);
 
