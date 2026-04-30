@@ -22,7 +22,7 @@ export const createTask = async (userId, payload) => {
   });
 
   try {
-    await enqueueTask(task.id);
+    await enqueueTask(task._id.toString());
   } catch (error) {
     task.status = 'failed';
     task.logs.push('Failed to enqueue task');
@@ -63,7 +63,7 @@ export const rerunTask = async (userId, taskId) => {
   await task.save();
 
   try {
-    await enqueueTask(task.id);
+    await enqueueTask(task._id.toString());
   } catch (error) {
     task.status = 'failed';
     task.logs.push('Failed to re-enqueue task');
