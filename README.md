@@ -11,9 +11,6 @@ NeuroQueue/
 |-- backend/
 |-- frontend/
 |-- worker/
-|-- infra/
-|   |-- argocd/
-|   `-- k8s/
 |-- .github/
 |   `-- workflows/
 |-- docker-compose.yml
